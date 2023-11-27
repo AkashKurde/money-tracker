@@ -49,11 +49,11 @@ const FundReceviedView = () => {
     <Container
     sx={{
         display: 'flex',
-        flexDirection: 'column',  // To make sure the children stack vertically
-        justifyContent: 'flex-start', // Start from the top
-        alignItems: 'center', // Center horizontally
+        flexDirection: 'column',  
+        justifyContent: 'flex-start', 
+        alignItems: 'center', 
         minHeight: '100vh',
-        p: 0, // Remove padding from the Container
+        p: 0,
     }}
 >
     <Header name={'User Profit'} />
