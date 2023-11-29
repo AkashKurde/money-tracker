@@ -127,8 +127,6 @@ const ApproverPage = () => {
             .catch((err) => {
               console.log('Error:', err);
             });
-        }else{
-            navigate('/approver')
         }
       },[])
 
@@ -230,9 +228,6 @@ const ApproverPage = () => {
         >
             <Header name={'Expense Report'}/>
             <Paper elevation={0} sx={{ padding: '16px', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
-                {/* <Typography sx={{ fontSize: '25px', fontWeight: '500' }}>
-                    Expense Report
-                </Typography> */}
                 <form>
                     <FormControl fullWidth variant="outlined" margin="normal">
                         <InputLabel>Project</InputLabel>

@@ -10,7 +10,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { Alert, Snackbar, Typography } from '@mui/material';
 import axios from 'axios';
 import { baseURL } from '../utils/services';
-import { LOGOUT } from '../redux/actionTypes';
+import { ADMIN_PRJ_ID, APPROVER_DATA, LOGOUT, REPORT_DATA, STATUS, USER_PROFIT_DATA } from '../redux/actionTypes';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
@@ -51,6 +51,11 @@ const handleChange = (e) => {
 
 const handleReset = () =>{
   dispatch({ type: LOGOUT });
+  dispatch({ type: USER_PROFIT_DATA, payload: null })
+  dispatch({ type: REPORT_DATA, payload: null })
+  dispatch({ type: ADMIN_PRJ_ID, payload: null })
+  dispatch({ type: STATUS, payload: null })
+  dispatch({ type: APPROVER_DATA, payload: null })
   axios.post(`${baseURL}/api/authentication/update-password`,resetDetails)
   .then((res)=>{
     console.log("res reset",res.data);

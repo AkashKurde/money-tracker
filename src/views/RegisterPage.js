@@ -109,9 +109,6 @@ const RegisterPage = () => {
     >
       <Header name={'Register'}/>
       <Paper elevation={0} sx={{ padding: '16px', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
-        {/* <Typography sx={{ fontSize: '25px', fontWeight: '500' }}>
-          Register
-        </Typography> */}
         <form>
           <TextField
             label="Full Name"

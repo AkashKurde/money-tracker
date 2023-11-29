@@ -25,14 +25,12 @@ const dateStyle = {
     textOverflow: "ellipsis",
   }
   const amountAlogn={
-    maxWidth: "200px",
+    maxWidth: "190px",
     overflow: "hidden",
     whiteSpace: "nowrap",
     textOverflow: "ellipsis",
-    display:'flex',
-    alignItems:"center"
+    fontSize: 'large'
   }
-
 const FundReceivedList = () => {
     const dispatch=useDispatch();
     const navigate=useNavigate();
@@ -43,6 +41,9 @@ const FundReceivedList = () => {
     const [currentPage,setCurrentPage]=useState(0);
     const projectId = useSelector(state => state.AdminProjectIDReducer.id);
 
+    useEffect(()=>{
+        dispatch({type: USER_PROFIT_DATA ,payload: null})
+    },[])
     useEffect(() => {
         setloading(true)
         if (projectId) {
@@ -107,7 +108,7 @@ const FundReceivedList = () => {
                 p: 0, // Remove padding from the Container
             }}
         >
-            <Header name={'Fund Received'} />
+            <Header name={'Refund List'} />
             
             <Grid container spacing={2} sx={{ marginTop: '25px', paddingLeft: '10px', paddingRight: '10px' }}>
                 {profitReport &&
@@ -131,9 +132,9 @@ const FundReceivedList = () => {
                                         <Typography sx={{ fontSize: '25px', fontWeight: 'bold' }}>{day}</Typography>
                                         <Typography sx={{ fontSize: '24px', fontWeight: '700' }}>{month}</Typography>
                                     </CardContent>
-                                    <CardContent>
+                                    <CardContent sx={{paddingBottom:'0px !important',display:'flex',flexDirection:'column',gap:'2px',marginBottom:'10px'}}>
                                         <Typography variant="h6" style={cardAlign}>{val.note}</Typography>
-                                        <Typography variant="h6" style={amountAlogn}><CurrencyRupeeIcon />{val.amount}</Typography>
+                                        <Typography variant="h6" style={amountAlogn}>Amount:  {val.amount}</Typography>
                                         <Chip label={val.status === 'DRAFT' ? 'Draft' : 'Approved'} color="primary" sx={{ width: '80px', height: '24px' }} />
                                     </CardContent>
                                 </Card>

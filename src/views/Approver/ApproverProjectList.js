@@ -34,6 +34,9 @@ const ApproverProjectList = () => {
     const open = Boolean(anchorEl);
 
 
+    useEffect(()=>{
+        dispatch({ type: APPROVER_DATA, payload: null })
+    },[])
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
     };

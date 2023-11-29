@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   CardContent,
+  Chip,
   Container,
   FormControl,
   Grid,
@@ -23,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../Header';
 import { baseURL } from '../../utils/services';
 import axios from 'axios';
+import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 
 const dateStyle = {
   display: 'flex',
@@ -38,7 +40,13 @@ const cardAlign={
   whiteSpace: "nowrap",
   textOverflow: "ellipsis"
 }
-
+const amountAlogn={
+  maxWidth: "190px",
+  overflow: "hidden",
+  whiteSpace: "nowrap",
+  textOverflow: "ellipsis",
+  fontSize: 'large'
+}
 const AdminProjectList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -203,25 +211,25 @@ const AdminProjectList = () => {
                             const [day, month] = formattedDate.split(' ');
 
                             return (
-                                <Grid key={val.id} item xs={12} sm={6} md={4}>
-                                    <Card
-                                        onClick={()=>handleClickTitle(val)}
-                                        sx={{ display: 'flex', alignItems: 'center', gap:'20px'}}
-                                    >
-                                        <CardContent sx={dateStyle}>
-                                            <Typography sx={{ fontSize: '25px', fontWeight: 'bold' }}>{day}</Typography>
-                                            <Typography sx={{ fontSize: '24px', fontWeight: '700' }}>{month}</Typography>
-                                        </CardContent>
-                                        <div style={{display:'flex',flexDirection:'column'}}>
-                                            <div>
-                                                <Typography variant="h6" style={cardAlign}>{val.title}</Typography>
-                                            </div>
-                                            <div>
-                                                <Typography sx={{ fontSize: '15px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'175px'}}>{`Approved By ${val.approverName}`}</Typography>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </Grid>
+                              <Grid key={val.id} item xs={12} sm={6} md={4}>
+                                <Card
+                                  onClick={() => handleClickTitle(val)}
+                                  sx={{ display: 'flex', alignItems: 'center', gap: '20px' }}
+                                >
+                                  <CardContent sx={dateStyle}>
+                                    <Typography sx={{ fontSize: '25px', fontWeight: 'bold' }}>{day}</Typography>
+                                    <Typography sx={{ fontSize: '24px', fontWeight: '700' }}>{month}</Typography>
+                                  </CardContent>
+                                  <div style={{ display: 'flex', flexDirection: 'column',marginTop:'2px'}}>
+                                    <Chip label={val.refund ? 'Refund' : 'Expenditure'} sx={{ width: val.refund ? '76px' : '100px', height: '20px', color: 'white', background: val.refund ? 'green' : 'red',marginLeft: val.refund ?'143px':'119px'}} />
+                                    <Typography variant="h6" style={cardAlign}>{val.title}</Typography>
+                                    <div>
+                                      <Typography variant="h6" style={amountAlogn}>Amount:  {val.amount}</Typography>
+                                      <Typography sx={{ fontSize: '15px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '175px',marginBottom:'5px' }}>{`Approved By ${val.approverName}`}</Typography>
+                                    </div>
+                                  </div>
+                                </Card>
+                              </Grid>
                             )
                         })}
                 </Grid>

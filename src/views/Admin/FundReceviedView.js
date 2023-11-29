@@ -12,16 +12,35 @@ const FundReceviedView = () => {
     const ProfitData = useSelector((state) => state.UserReportDataReducer.data);
     const loginData = useSelector((state) => state.auth.user);
     const [SubprojectOptions, setSubprojectOptions] = useState([]);
+    const [updatedFiles,setUpdatedfiles]=useState([]);
+    const [subProjectName,setSubProjectName]=useState('')
     const [profitDetails, setProfitDetails] = useState({
         note: '',
         subProjectId: null,
         amount: null,
-        subProjectName:''
     })
    
-    useEffect(()=>{
-        if(ProfitData !== null){
-            //
+    useEffect(() => {
+        if (ProfitData !== null) {
+
+            axios({
+                method: 'get',
+                url: `${baseURL}/api/profit/by-self/single/${ProfitData.id}`,
+                headers: {
+                    Authorization: `Bearer ${loginData.jwt}`,
+                },
+            })
+                .then((res) => {
+                    console.log('Response: exp', res.data);
+                    setProfitDetails(res.data);
+                    setUpdatedfiles(res.data.reportFiles)
+                })
+                .catch((err) => {
+                    console.log('Error:', err);
+                });
+
+
+
             axios({
                 method: 'get',
                 url: `${baseURL}/api/projects/sub-project/${ProfitData.subProjectId}`,
@@ -31,20 +50,25 @@ const FundReceviedView = () => {
             })
                 .then((res) => {
                     console.log('Response: report get', res.data);
-                    setProfitDetails({
-                        ...ProfitData,
-                        subProjectName:res.data.title
-                    })
-                    
+                    setSubProjectName(res.data.title);
                 })
                 .catch((err) => {
                     console.log('Error:', err);
                 });
-            // setProfitDetails(ProfitData)
-        }else{
-            navigate(-1);
         }
-    },[])
+    }, []);
+
+    const downloadZip = (filepath) => {
+        const url = filepath;
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'file');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+    }
+    
   return (
     <Container
     sx={{
@@ -56,7 +80,7 @@ const FundReceviedView = () => {
         p: 0,
     }}
 >
-    <Header name={'User Profit'} />
+    <Header name={'Refund'} />
           <Paper elevation={0} sx={{ padding: '16px', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
               <TextField
                   label="Sub-Project"
@@ -65,7 +89,7 @@ const FundReceviedView = () => {
                   fullWidth
                   size="medium"
                   margin="normal"
-                  value={profitDetails.subProjectName}
+                  value={subProjectName}
                   disabled
               />
               <TextField
@@ -92,6 +116,21 @@ const FundReceviedView = () => {
                   }}
                   disabled
               />
+
+              {updatedFiles && updatedFiles.length > 0 && (
+                  <ul>
+                      {updatedFiles.map((file, index) => {
+                          const parts = file.location.split('\\');
+                          const filename = parts[parts.length - 1];
+
+                          return (
+                              <li key={index} style={{ display: 'flex', gap: '10px', marginTop: '5px' }} onClick={() => downloadZip(file.location)}>
+                                  {filename}{' '}
+                              </li>
+                          );
+                      })}
+                  </ul>
+              )}
           </Paper>
 </Container>
 

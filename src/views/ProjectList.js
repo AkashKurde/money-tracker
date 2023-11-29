@@ -92,6 +92,9 @@ const ProjectList = () => {
       });
   }, []);
 
+  useEffect(()=>{
+    dispatch({type: REPORT_DATA,payload: null})
+  },[])
   const handelClickCard=(val)=>{
     dispatch({type: REPORT_DATA,payload: val})
     navigate('/expense')

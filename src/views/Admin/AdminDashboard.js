@@ -20,16 +20,15 @@ const AdminDashboard = () => {
     const loginData = useSelector(state => state.auth.user);
     const [projectOptions, setprojectOptions] = useState([]);
     const [selectedProject, setSelectedProject] = useState('');
-    const [selectedSubProject, setSelectedSubProject] = useState('');
     const [anchorEl, setAnchorEl] = useState(null);
-    const [SubprojectOptions, setSubprojectOptions] = useState([]);
     const [adminCards, setadminCards] = useState({
         approved: 0,
         rejected: 0,
         totalSpent: 0,
         fundAllocated: 0,
         pendingApprovals: 0,
-        fundReceived:0
+        fundReceived:0,
+        totalEarnings:0
     });
     const [bottomSelectedValue, setBottomSelectedValue] = useState('');
     const [openModal, setOpenModal] = useState(false);
@@ -44,7 +43,7 @@ const AdminDashboard = () => {
 
     useEffect(()=>{
         dispatch({type: ADMIN_PRJ_ID, payload: null })
-
+        dispatch({ type: STATUS, payload: null })
     },[])
     const handleClosetoast = (event, reason) => {
         if (reason === 'clickaway') {
@@ -119,20 +118,6 @@ const AdminDashboard = () => {
         const selectedProject = event.target.value;
         dispatch({type: ADMIN_PRJ_ID, payload: selectedProject })
         setSelectedProject(selectedProject);
-        axios({
-            method: 'get',
-            url: `${baseURL}/api/project-query/sub-project/all/${selectedProject}`,
-            headers: {
-                Authorization: `Bearer ${loginData.jwt}`,
-            },
-        })
-            .then((res) => {
-                console.log('Response:', res.data);
-                setSubprojectOptions(res.data);
-            })
-            .catch((err) => {
-                console.log('Error:', err);
-            });
         //filter admin cards with project
         axios({
             method: 'get',
@@ -154,29 +139,11 @@ const AdminDashboard = () => {
                     totalSpent: 0,
                     fundAllocated: 0,
                     pendingApprovals: 0,
-                    fundReceived:0
+                    fundReceived:0,
+                    totalEarnings:0
                 })
             });
     };
-    const handleSubProjectChange = (event) => {
-        const selectedSubProject = event.target.value;
-        setSelectedSubProject(selectedSubProject);
-        axios({
-            method: 'get',
-            url: `${baseURL}/api/admin/dashboard/${selectedSubProject}`,
-            headers: {
-                'Authorization': `Bearer ${loginData.jwt}`,
-            },
-        })
-            .then((res) => {
-                console.log("Response: admin", res.data);
-                setadminCards(res.data)
-            })
-            .catch((err) => {
-                console.log("Error:", err);
-            });
-    };
-
     const handleChangeBottom = (event, newValue) => {
         setBottomSelectedValue(newValue);
         if (newValue == 0) {
@@ -307,30 +274,6 @@ const AdminDashboard = () => {
                 </FormControl>
 
             </Box>
-            {/* <Box
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '95%',
-                }}
-            >
-                <FormControl fullWidth variant="outlined" margin="normal">
-                    <InputLabel>Sub Project</InputLabel>
-                    <Select
-                        label="Sub Project"
-                        size="medium"
-                        value={selectedSubProject}
-                        onChange={handleSubProjectChange}
-                        sx={{ textAlign: 'left' }}
-                    >
-                        {SubprojectOptions && SubprojectOptions.map((option) => (
-                            <MenuItem key={option.id} value={option.id}>
-                                {option.title}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-            </Box> */}
             <Box sx={{ overflowY: 'auto', flex: 1 }}>
             <Grid container spacing={2} sx={{ marginTop: '5px',marginBottom:'60px', paddingLeft: '10px', paddingRight: '10px' }}>
 
@@ -447,7 +390,24 @@ const AdminDashboard = () => {
                         <Typography variant="h6">Fund Received</Typography>
                     </Card>
                 </Grid>
-
+                <Grid item xs={6} sm={6} md={4} lg={3} xl={2}>
+                    <Card
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            paddingBottom: '10px',
+                            textAlign: 'center',
+                            height: '130px'
+                        }}
+                    >
+                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px' }}>
+                            {adminCards.totalEarnings}
+                        </Typography>
+                        <Typography variant="h6">Total Earnings</Typography>
+                    </Card>
+                </Grid>
             </Grid>
             </Box>
             <Box sx={{ width: '100%', position: 'fixed', bottom: 0 }}>

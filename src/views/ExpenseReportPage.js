@@ -23,7 +23,6 @@ import Header from './Header';
 import { useNavigate } from 'react-router-dom';
 const ExpenseReportPage = () => {
   const navigate=useNavigate();
-  const [projectOptions, setprojectOptions] = useState([]);
   const [SubprojectOptions, setSubprojectOptions] = useState([]);
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedSubProject, setSelectedSubProject] = useState('');
@@ -50,25 +49,6 @@ const ExpenseReportPage = () => {
     }
     setOpen(false);
   };
-
-
-  useEffect(() => {
-    axios({
-      method: 'get',
-      url: `${baseURL}/api/project-query/all`,
-      headers: {
-        Authorization: `Bearer ${loginData.jwt}`,
-      },
-    })
-      .then((res) => {
-        console.log('Response:', res.data);
-        setprojectOptions(res.data);
-      })
-      .catch((err) => {
-        console.log('Error:', err);
-      });
-  }, []);
-
   useEffect(() => {
     axios({
       method: 'get',
@@ -85,25 +65,6 @@ const ExpenseReportPage = () => {
         console.log('Error:', err);
       });
   }, []);
-
-  const handleProjectChange = (event) => {
-    const selectedProject = event.target.value;
-    setSelectedProject(selectedProject);
-    axios({
-      method: 'get',
-      url: `${baseURL}/api/project-query/sub-project/all/${selectedProject}`,
-      headers: {
-        Authorization: `Bearer ${loginData.jwt}`,
-      },
-    })
-      .then((res) => {
-        console.log('Response:', res.data);
-        setSubprojectOptions(res.data);
-      })
-      .catch((err) => {
-        console.log('Error:', err);
-      });
-  };
 
   useEffect(() => {
     axios({
@@ -385,27 +346,7 @@ const ExpenseReportPage = () => {
     >
       <Header name={'Expense Report'} />
       <Paper elevation={0} sx={{ padding: '16px', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
-        {/* <Typography sx={{ fontSize: '25px', fontWeight: '500' }}>
-          Expense Report
-        </Typography> */}
         <form>
-          {/* <FormControl fullWidth variant="outlined" margin="normal">
-            <InputLabel>Project</InputLabel>
-            <Select
-              label="Project"
-              size="medium"
-              value={selectedProject}
-              onChange={handleProjectChange}
-              sx={{ textAlign: 'left' }}
-              disabled={expenseDetails.approvalStatus === "REJECTED"}
-            >
-              {projectOptions && projectOptions.map((option) => (
-                <MenuItem key={option.id} value={option.id}>
-                  {option.title}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl> */}
           <FormControl fullWidth variant="outlined" margin="normal">
             <InputLabel>Sub Project</InputLabel>
             <Select

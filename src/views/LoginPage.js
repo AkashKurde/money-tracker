@@ -115,7 +115,7 @@ const LoginPage = () => {
         setloading(false)
         setOpen(true);
         setSeverity('error')
-        setMsg(`${error.message}`)
+        setMsg(`${error.response?.data.message}`)
         setUsername('');
         setPassword('')
         console.log(error.message);

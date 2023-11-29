@@ -218,15 +218,6 @@ const ProjectPage = () => {
         })
             .then((res) => {
                 console.log("Response:", res.data);
-
-                // // Convert the single object to an array
-                // const userDataArray = Array.isArray(res.data) ? res.data : [res.data];
-
-                // // Filter users with "APPROVER" authority
-                // const approverUsers = userDataArray.filter(user => (
-                //   user.authorities.some(authority => authority.authority === "APPROVER")
-                // ));
-
                 setEmployeeList(res.data);
             })
             .catch((err) => {
@@ -301,9 +292,6 @@ const ProjectPage = () => {
         >
             <Header name={'Create Sub-Project'} />
             <Paper elevation={0} sx={{ padding: '16px', maxWidth: '600px', width: '90%', textAlign: 'center' }}>
-                {/* <Typography sx={{ fontSize: '25px', fontWeight: '500' }}>
-                    Create Sub-Project
-                </Typography> */}
                 <form>
                     <FormControl fullWidth variant="outlined" margin="normal">
                         <InputLabel id="project-label">Project/Client</InputLabel>
