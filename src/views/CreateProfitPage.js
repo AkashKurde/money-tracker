@@ -10,8 +10,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 const CreateProfitPage = () => {
     const navigate=useNavigate();
+    const todayDate = new Date().toISOString().split('T')[0];
     const loginData = useSelector((state) => state.auth.user);
     const ProfitData = useSelector((state) => state.UserReportDataReducer.data);
+    console.log("DRAFT",ProfitData)
     const [SubprojectOptions, setSubprojectOptions] = useState([]);
     const [profitDetails, setProfitDetails] = useState({
         note: '',
@@ -26,6 +28,7 @@ const CreateProfitPage = () => {
     const [editMode,setEditmode]=useState(false);
     const [updatedFiles,setUpdatedfiles]=useState([]);
     const [deleteFlag,setDeleteflag]=useState(false);
+    const [date,setDate]=useState(todayDate)
     useEffect(() => {
         axios({
             method: 'get',
@@ -72,6 +75,7 @@ const CreateProfitPage = () => {
                 },
                 data: {
                     ...profitDetails,
+                    createdAt: new Date(date).toISOString(),
                     status:"APPROVED"
                 },
             })
@@ -82,7 +86,7 @@ const CreateProfitPage = () => {
                     setSeverity('success')
                     setMsg('Profit Submited Successfully');
                     setTimeout(() => {
-                        navigate('/user-profit-list');
+                        navigate('/projectlist');
                       }, 1000);
                 })
                 .catch((err) => {
@@ -90,7 +94,7 @@ const CreateProfitPage = () => {
                     setloading(false)
                     setOpen(true);
                     setSeverity('error')
-                    setMsg('Error Submiting Profit')
+                    setMsg('Error Submiting fund')
                 })
         } else {
             // Create a FormData object
@@ -104,6 +108,7 @@ const CreateProfitPage = () => {
 
             // Append other data to the FormData object
             formData.append('status', 'APPROVED');
+            formData.append('createdAt',new Date(date).toISOString());
             Object.entries(profitDetails).forEach(([key, value]) => {
                 formData.append(key, value);
             });
@@ -124,7 +129,7 @@ const CreateProfitPage = () => {
                     setSeverity('success');
                     setMsg('Profit Submitted Successfully');
                     setTimeout(() => {
-                        navigate('/user-profit-list');
+                        navigate('/projectlist');
                     }, 1000);
                 })
                 .catch((err) => {
@@ -132,7 +137,7 @@ const CreateProfitPage = () => {
                     setloading(false);
                     setOpen(true);
                     setSeverity('error');
-                    setMsg('Error Submitting Profit');
+                    setMsg('Error Submitting fund');
                 });
         }
         
@@ -149,6 +154,7 @@ const CreateProfitPage = () => {
                 },
                 data: {
                     ...profitDetails,
+                    createdAt: new Date(date).toISOString(),
                     status:"DRAFT"
                 },
             })
@@ -159,7 +165,7 @@ const CreateProfitPage = () => {
                     setSeverity('success')
                     setMsg('Profit Drafted Successfully');
                     setTimeout(() => {
-                        navigate('/user-profit-list');
+                        navigate('/projectlist');
                       }, 1000);
                 })
                 .catch((err) => {
@@ -167,7 +173,7 @@ const CreateProfitPage = () => {
                     setloading(false)
                     setOpen(true);
                     setSeverity('error')
-                    setMsg('Error Drafting Profit')
+                    setMsg('Error Drafting fund')
                 })
         }else{
              // Create a FormData object
@@ -181,6 +187,7 @@ const CreateProfitPage = () => {
  
              // Append other data to the FormData object
              formData.append('status', 'DRAFT');
+             formData.append('createdAt',new Date(date).toISOString());
              Object.entries(profitDetails).forEach(([key, value]) => {
                  formData.append(key, value);
              });
@@ -200,7 +207,8 @@ const CreateProfitPage = () => {
                     setSeverity('success')
                     setMsg('Profit Drafted Successfully');
                     setTimeout(() => {
-                        navigate('/user-profit-list');
+                        navigate('/projectlist');
+                        
                       }, 1000);
                 })
                 .catch((err) => {
@@ -234,6 +242,7 @@ const CreateProfitPage = () => {
                   console.log('Response: exp', res.data);
                   setProfitDetails(res.data);
                   setUpdatedfiles(res.data.reportFiles)
+                  setDate(res.data.createdAt !== null && res.data.createdAt.split('T')[0])
                 })
                 .catch((err) => {
                   console.log('Error:', err);
@@ -298,6 +307,10 @@ const CreateProfitPage = () => {
         document.body.removeChild(link);
 
     }
+
+    const handleDateChange = (event) => {
+        setDate(event.target.value);
+      };
     return (
         <Container
             sx={{
@@ -309,7 +322,7 @@ const CreateProfitPage = () => {
                 p: 0, // Remove padding from the Container
             }}
         >
-            <Header name={'Refund'} />
+            <Header name={'Add Fund'} />
             <Paper elevation={0} sx={{ padding: '16px', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
                 <Autocomplete
                     value={SubprojectOptions.find(option => option.id === profitDetails.subProjectId) || null}
@@ -319,7 +332,7 @@ const CreateProfitPage = () => {
                     options={SubprojectOptions}
                     getOptionLabel={(option) => option.title}
                     renderInput={(params) => <TextField {...params} label="Sub-Project" />}
-                    disabled={ProfitData && ProfitData.status !== "DRAFT"}
+                    disabled={ProfitData && ProfitData.approvalStatus !== "DRAFT"}
                 />
                 <TextField
                     label="Note"
@@ -330,7 +343,7 @@ const CreateProfitPage = () => {
                     margin="normal"
                     value={profitDetails.note}
                     onChange={handleChange}
-                    disabled={ProfitData && ProfitData.status !== "DRAFT"}
+                    disabled={ProfitData && ProfitData.approvalStatus !== "DRAFT"}
                 />
                 <TextField
                     label="Amount"
@@ -345,7 +358,20 @@ const CreateProfitPage = () => {
                     InputLabelProps={{
                         shrink: true, // This ensures the label stays floating
                     }}
-                    disabled={ProfitData && ProfitData.status !== "DRAFT"}
+                    disabled={ProfitData && ProfitData.approvalStatus !== "DRAFT"}
+                />
+                <TextField
+                    label="Date"
+                    variant="outlined"
+                    fullWidth
+                    type="date"
+                    margin="normal"
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                    value={date}
+                    onChange={handleDateChange}
+                    disabled={ProfitData && ProfitData.approvalStatus !== "DRAFT"}
                 />
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px', marginTop: '10px' }}>
                     <label htmlFor="file-upload">
@@ -364,7 +390,7 @@ const CreateProfitPage = () => {
                     {updatedFiles && updatedFiles.length > 0 && editMode && (
                         <ul>
                             {updatedFiles.map((file, index) => {
-                                const parts = file.location.split('\\');
+                                const parts = file.location.split('/');
                                 const filename = parts[parts.length - 1];
 
                                 return (
@@ -387,30 +413,56 @@ const CreateProfitPage = () => {
                         </Typography>
                     )}
                 </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        color="primary"
-                        sx={{ textTransform: 'none' }}
-                        onClick={handleSaveAsDraft}
-                        disabled={ProfitData && ProfitData.status !== "DRAFT"}
+                {ProfitData !== null ?
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            color="primary"
+                            sx={{ textTransform: 'none' }}
+                            onClick={handleSaveAsDraft}
+                            disabled={ProfitData && ProfitData.approvalStatus !== "DRAFT"}
 
-                    >
-                        Save As Draft
-                    </Button>
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        color="primary"
-                        sx={{ textTransform: 'none' }}
-                        onClick={handleSubmit}
-                        disabled={ProfitData && ProfitData.status !== "DRAFT"}
+                        >
+                            Update As Draft
+                        </Button>
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            color="primary"
+                            sx={{ textTransform: 'none' }}
+                            onClick={handleSubmit}
+                            disabled={ProfitData && ProfitData.approvalStatus !== "DRAFT"}
 
-                    >
-                        Submit for approval
-                    </Button>
-                </Box>
+                        >
+                            Submit for approval
+                        </Button>
+                    </Box> :
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            color="primary"
+                            sx={{ textTransform: 'none' }}
+                            onClick={handleSaveAsDraft}
+                            disabled={ProfitData && ProfitData.approvalStatus !== "DRAFT"}
+
+                        >
+                            Save As Draft
+                        </Button>
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            color="primary"
+                            sx={{ textTransform: 'none' }}
+                            onClick={handleSubmit}
+                            disabled={ProfitData && ProfitData.approvalStatus !== "DRAFT"}
+
+                        >
+                            Submit for approval
+                        </Button>
+                    </Box>
+                }
             </Paper>
             <Snackbar sx={{ top: '75px' }} open={open} autoHideDuration={4000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
                 <Alert variant='filled' onClose={handleClose} severity={severity} sx={{ width: '100%' }}>

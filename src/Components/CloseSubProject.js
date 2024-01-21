@@ -10,42 +10,50 @@ import {
 import axios from "axios";
 import { baseURL } from "../utils/services";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
-const DeleteModel = ({ open, setOpen, deleteId, setDeleteFlag, DeleteFlag,setOpenToast, setMsg ,setSeverity}) => {
+const CloseSubProject = ({closeModal, setCloseModal, subProjectId,setOpenToast, setMsg ,setSeverity}) => {
+    const navigate=useNavigate();
     const loginData = useSelector(state => state.auth.user);
     const handleNo = () => {
-        setOpen(false);
+        setCloseModal(false);
     };
 
     const handleYes = () => {
-        setOpen(false);
+        setCloseModal(false);
         axios({
-            method: 'delete',
-            url: `${baseURL}/api/authentication/${deleteId}`,
+            method: 'put',
+            url: `${baseURL}/api/project-mgmt`,
             headers: {
                 'Authorization': `Bearer ${loginData.jwt}`,
             },
+            data: {
+                subProjectId:subProjectId,
+                close:true
+            }
         })
             .then((res) => {
                 console.log("Response:", res.data);
-                setDeleteFlag(!DeleteFlag);
                 setOpenToast(true);
-                setMsg("Delete SuccessFully");
                 setSeverity('success')
+                setMsg('Sub-Project Updated Successfully')
+                setTimeout(() => {
+                    navigate(-1);
+                  }, 1500);
             })
             .catch((err) => {
                 console.log("Error:", err);
                 setOpenToast(true);
-                setMsg("Error While Delete ");
                 setSeverity('error')
+                setMsg('Error...!')
             });
     }
     return (
         <div>
-            <Dialog open={open}>
+            <Dialog open={closeModal}>
                 <DialogContent >
                     <Typography sx={{fontWeight: '600'}}>
-                    Are you sure you want to Delete?
+                    Are you sure you want to Close?
                     </Typography>
                 </DialogContent>
                 <DialogActions>
@@ -61,4 +69,4 @@ const DeleteModel = ({ open, setOpen, deleteId, setDeleteFlag, DeleteFlag,setOpe
     );
 };
 
-export default DeleteModel;
+export default CloseSubProject;

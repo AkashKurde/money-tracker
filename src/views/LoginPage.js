@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { login } from '../redux/actions/authActions';
 import axios from 'axios';
 import { baseURL } from '../utils/services';
-
+import LogoNoteBook from '../assests/LogoNoteBook.png'
 const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -143,8 +143,10 @@ const LoginPage = () => {
           margin: '20px',
         }}
       >
-        <Typography sx={{ fontSize: '25px', fontWeight: '500' }}>Login</Typography>
-        <form>
+        <div>
+          <img src={LogoNoteBook} alt='logo' width='260px' height='140px' />
+        </div>
+       
           <TextField
             label="Username"
             variant="outlined"
@@ -154,6 +156,7 @@ const LoginPage = () => {
             value={username}
             helperText={userHelperTxt}
             onChange={(e)=>handleChangeUser(e)}
+            sx={{marginTop:'30px'}}
           />
           <TextField
             label="Password"
@@ -195,7 +198,7 @@ const LoginPage = () => {
           >
             Login
           </Button>
-        </form>
+        
       </Paper>
 
       {/* Password Reset Modal */}

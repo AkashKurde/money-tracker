@@ -10,12 +10,13 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { useSelector } from 'react-redux';
-import { LOGOUT } from '../redux/actionTypes';
+import { useDispatch, useSelector } from 'react-redux';
+import { LOGOUT, USER_PROFIT_DATA } from '../redux/actionTypes';
 import ResponsiveModal from '../Components/ResponsiveModal';
 import { useNavigate } from 'react-router-dom';
 
 const Header = ({name}) => {
+  const dispatch=useDispatch();
   const loginData = useSelector((state) => state.auth.user);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [open,setOpen]=useState(false)
@@ -51,11 +52,15 @@ const Header = ({name}) => {
   }
   const goToCreateProfit=()=>{
     setAnchorEl(null);
+    dispatch({type: USER_PROFIT_DATA ,payload: null})
     navigate("/create-profit");
   }
   const goToListProfits=()=>{
     setAnchorEl(null);
     navigate("/user-profit-list");
+  }
+  const goToUsers=()=>{
+    navigate('/users')
   }
   return (
     <>
@@ -78,12 +83,13 @@ const Header = ({name}) => {
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
         >
-          <MenuItem onClick={goToMyProfile}>My Profile</MenuItem>
-          {loginData.roles[0].authority !== 'ADMIN' && <MenuItem onClick={goToCreateProfit}>Create Refund</MenuItem>}
-          {loginData.roles[0].authority !== 'ADMIN' && <MenuItem onClick={goToListProfits}>Refund List</MenuItem>}
+          {/* <MenuItem onClick={goToMyProfile}>My Profile</MenuItem> */}
+          {/* {loginData.roles[0].authority !== 'ADMIN' && <MenuItem onClick={goToCreateProfit}>Create Refund</MenuItem>} */}
+          {/* {loginData.roles[0].authority !== 'ADMIN' && <MenuItem onClick={goToListProfits}>Refund List</MenuItem>} */}
           {loginData.roles[0].authority === 'APPROVER' && <MenuItem onClick={handleApprovals}>Approvals List</MenuItem> }
           {loginData.roles[0].authority === 'GENERAL' && <MenuItem onClick={goToReportList}>Report List</MenuItem> }
           {loginData.roles[0].authority === 'ADMIN' && <MenuItem onClick={goToDashboard}>Dashboard</MenuItem> }
+          {loginData.roles[0].authority === 'ADMIN' && <MenuItem onClick={goToUsers}>Users</MenuItem> }
           <MenuItem onClick={handleLogout}>Log-out</MenuItem>
         </Menu>
       </Toolbar>

@@ -23,16 +23,18 @@ import Header from './Header';
 import { useNavigate } from 'react-router-dom';
 const ExpenseReportPage = () => {
   const navigate=useNavigate();
+  const todayDate = new Date().toISOString().split('T')[0];
   const [SubprojectOptions, setSubprojectOptions] = useState([]);
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedSubProject, setSelectedSubProject] = useState('');
   const [editMode,setEditmode]=useState(false);
   const [expenseDetails, setExpenseDetails] = useState({
-    title: '',
+    title: 'No Title',
     amount: null,
     description: '',
     category: '',
   });
+  const [date,setDate]=useState(todayDate)
   const [files, setFiles] = useState();
   const [updatedFiles,setUpdatedfiles]=useState();
   const loginData = useSelector((state) => state.auth.user);
@@ -143,6 +145,7 @@ const ExpenseReportPage = () => {
     formData.append('description',expenseDetails.description);
     formData.append('category',expenseDetails.category);
     formData.append('approvalStatus','IN_APPROVAL');
+    formData.append('createdAt',new Date(date).toISOString());
     // Now you can send the formData to the server
     axios
       .post(`${baseURL}/api/report`, formData, {
@@ -166,7 +169,7 @@ const ExpenseReportPage = () => {
         setloading(false);
         setOpen(true);
         setSeverity('error');
-        setMsg(err.message)
+        setMsg(err.response ? err.response.data.message : err.message)
       });
   };
   const handleDraft = () => {
@@ -184,6 +187,7 @@ const ExpenseReportPage = () => {
     formData.append('description',expenseDetails.description);
     formData.append('category',expenseDetails.category);
     formData.append('approvalStatus','DRAFT');
+    formData.append('createdAt',new Date(date).toISOString());
     // Now you can send the formData to the server
     axios
       .post(`${baseURL}/api/report`, formData, {
@@ -207,7 +211,7 @@ const ExpenseReportPage = () => {
         setloading(false);
         setOpen(true);
         setSeverity('error');
-        setMsg(err.message)
+        setMsg(err.response ? err.response.data.message : err.message)
       });
   }
   const handleUpdate = () => {
@@ -215,8 +219,8 @@ const ExpenseReportPage = () => {
     const obj={
       ...expenseDetails,
       subProjectId:selectedSubProject,
-      approvalStatus: 'IN_APPROVAL'
-
+      approvalStatus: 'IN_APPROVAL',
+      createdAt: new Date(date).toISOString()
     }
     axios({
       method: 'put',
@@ -249,8 +253,8 @@ const ExpenseReportPage = () => {
     const obj={
       ...expenseDetails,
       subProjectId:selectedSubProject,
-      approvalStatus: 'DRAFT'
-
+      approvalStatus: 'DRAFT',
+      createdAt: new Date(date).toISOString()
     }
     axios({
       method: 'put',
@@ -292,6 +296,7 @@ const ExpenseReportPage = () => {
         .then((res) => {
           console.log('Response: exp', res.data);
           setExpenseDetails(res.data);
+          setDate(res.data.createdAt !== null && res.data.createdAt.split('T')[0])
           setUpdatedfiles(res.data.files)
           setSelectedProject(res.data.projectID);
           axios({
@@ -333,6 +338,10 @@ const ExpenseReportPage = () => {
       console.log("err",err)
     })
   }
+
+  const handleDateChange = (event) => {
+    setDate(event.target.value);
+  };
   return (
     <Container
     sx={{
@@ -344,7 +353,7 @@ const ExpenseReportPage = () => {
       p: 0, // Remove padding from the Container
     }}
     >
-      <Header name={'Expense Report'} />
+      <Header name={'Create Expense'} />
       <Paper elevation={0} sx={{ padding: '16px', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
         <form>
           <FormControl fullWidth variant="outlined" margin="normal">
@@ -364,7 +373,7 @@ const ExpenseReportPage = () => {
               ))}
             </Select>
           </FormControl>
-          <TextField
+          {/* <TextField
             label="Title"
             name="title"
             variant="outlined"
@@ -374,7 +383,7 @@ const ExpenseReportPage = () => {
             value={expenseDetails.title}
             onChange={handleChange}
             disabled={expenseDetails.approvalStatus === "REJECTED"}
-          />
+          /> */}
           <TextField
             label="Description"
             name="description"
@@ -402,6 +411,18 @@ const ExpenseReportPage = () => {
               shrink: true, // This ensures the label stays floating
             }}
             disabled={expenseDetails.approvalStatus === "REJECTED"}
+          />
+          <TextField
+            label="Date"
+            variant="outlined"
+            fullWidth
+            type="date"
+            margin="normal"
+            InputLabelProps={{
+              shrink: true,
+            }}
+            value={date}
+            onChange={handleDateChange}
           />
           <FormControl fullWidth variant="outlined" margin="normal">
             <InputLabel>Category</InputLabel>
@@ -450,7 +471,7 @@ const ExpenseReportPage = () => {
             {updatedFiles && updatedFiles.length > 0 && editMode &&(
               <ul style={{ pointerEvents: (expenseDetails.approvalStatus === "REJECTED" || expenseDetails.approvalStatus === "APPROVED" || expenseDetails.approvalStatus === "IN_APPROVAL") && 'none' }}>
               {updatedFiles.map((file, index) => {
-                const parts = file.location.split('\\');
+                const parts = file.location.split('/');
                 const filename = parts[parts.length - 1];
         
                 return (

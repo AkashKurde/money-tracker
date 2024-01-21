@@ -4,10 +4,11 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
-    DialogTitle
+    DialogTitle,
+    Typography
 } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { ADMIN_PRJ_ID, APPROVER_DATA, LOGOUT, REPORT_DATA, STATUS, USER_PROFIT_DATA } from "../redux/actionTypes";
+import { ADMIN_PRJ_ID, APPROVER_DATA, LOGOUT, REPORT_DATA, SET_ALL_CHECK, SET_DATE, SET_SUBPROJ_ID, STATUS, USER_PROFIT_DATA } from "../redux/actionTypes";
 
 const ResponsiveModal = ({ open, setOpen }) => {
     const dispatch = useDispatch();
@@ -24,12 +25,21 @@ const ResponsiveModal = ({ open, setOpen }) => {
         dispatch({type: ADMIN_PRJ_ID, payload: null })
         dispatch({ type: STATUS, payload: null })
         dispatch({ type: APPROVER_DATA, payload: null })
-        
+        dispatch({
+            type: SET_DATE, payload: {
+              startDate: null,
+              endDate: null
+            }
+          })
+          dispatch({ type: SET_SUBPROJ_ID, payload: '' })
+          dispatch({type:SET_ALL_CHECK,payload:false})
     }
     return (
         <div>
             <Dialog open={open}>
-                <DialogContent sx={{fontWeight: '600'}}>Are you sure you want to Log-Out?</DialogContent>
+                <DialogContent>
+                    <Typography sx={{fontWeight: '600'}}>Are you sure you want to Log-Out?</Typography>
+                </DialogContent>
                 <DialogActions>
                     <Button onClick={handleNo} color="primary">
                         No

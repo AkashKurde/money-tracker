@@ -32,6 +32,7 @@ import Header from './Header';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import { flexbox } from '@mui/system';
 import { useNavigate } from 'react-router-dom';
+import CloseSubProject from '../Components/CloseSubProject';
 
 const ProjectPage = () => {
     const navigate=useNavigate();
@@ -58,6 +59,11 @@ const ProjectPage = () => {
     const [openToast, setOpenToast] = useState(false);
     const [msg, setMsg] = useState('');
     const [severity, setSeverity] = useState('success');
+    const editData=useSelector(state=>state.SubProjectDataReducer.data);
+    const [resUsers,setResUsers]=useState([]);
+    const [deleteMembers, setdeleteMembers] = useState([]);
+    const [newMembers, setNewMembers] = useState([]);
+    const [errFlag,setErrFlag]=useState(false);
 
     useEffect(() => {
         // Set initial start and end dates to the current month
@@ -124,20 +130,50 @@ const ProjectPage = () => {
 
     //approver check
     const handleEmployeeSelection = (employee) => {
-        const isSelected = selectedEmployees.some((e) => e.id === employee.id);
+        const isSelected = selectedEmployees && selectedEmployees.some((e) => e.id === employee.id);
         let updatedSelectedEmployees;
 
         if (isSelected) {
             // Deselect the employee
-            updatedSelectedEmployees = selectedEmployees.filter((e) => e.id !== employee.id);
+            updatedSelectedEmployees = selectedEmployees ? selectedEmployees.filter((e) => e.id !== employee.id) : [];
         } else {
             // Select the employee
-            updatedSelectedEmployees = [...selectedEmployees, employee];
+            updatedSelectedEmployees = selectedEmployees ? [...selectedEmployees, employee] : [employee];
         }
 
         const updatedMembers = updatedSelectedEmployees.map((e) => e.id);
         setMembers(updatedMembers);
         setSelectedEmployees(updatedSelectedEmployees);
+
+        if (resUsers && resUsers.length > 0) {
+            const newUser = [];
+            updatedSelectedEmployees.forEach(user2 => {
+                // Check if user2 is not present in array1 based on the "id"
+                const user1 = resUsers.find(u => u.id === user2.id);
+                if (!user1) {
+                    newUser.push(user2);
+                }
+            });
+
+            if (newUser && newUser.length > 0) {
+                const updatedNewMembers = newUser.map((e) => e.id);
+                setNewMembers(updatedNewMembers);
+            }else{
+                setNewMembers([]);
+            }
+            // Extract the ids from array2
+            const idsInArray2 = updatedSelectedEmployees.map(element => element.id);
+            // Find elements in array1 that are not present in array2 based on ids
+            const deletedUser = resUsers.filter(element => !idsInArray2.includes(element.id));
+            if (deletedUser && deletedUser.length > 0) {
+                const deletedUsersAll = deletedUser.map((e) => e.id);
+                setdeleteMembers(deletedUsersAll);
+            } else {
+                setdeleteMembers([]);
+            }
+        }else{
+            setNewMembers(updatedMembers);
+        }
     };
 
     const handleEmployeeModalClose = () => {
@@ -237,7 +273,7 @@ const ProjectPage = () => {
             endDate &&
             limitTransaction &&
             selectedProject &&
-            selectedEmployees.length > 0
+            selectedEmployees && selectedEmployees.length > 0
         );
     };
 
@@ -279,6 +315,91 @@ const ProjectPage = () => {
                 setMsg('Error Creating Project')
             })
     }
+
+    useEffect(() => {
+        if (editData != null) {
+            setloading(true)
+            axios({
+                method: 'get',
+                url: `${baseURL}/api/projects/sub-project/${editData.id}`,
+                headers: {
+                    'Authorization': `Bearer ${loginData.jwt}`,
+                },
+            })
+                .then((res) => {
+                    setloading(false)
+                    console.log("sub pro", res.data);
+                    setSelectedProject(res.data.project.id);
+                    setSubProjectName(res.data.title);
+                    setFundAllocated(res.data.expense);
+                    setLimitTransaction(res.data.maxLimit);
+                    setStartDate(res.data.startDate !== null && res.data.startDate.split('T')[0]);
+                    setEndDate(res.data.endDate !== null && res.data.endDate.split('T')[0]);
+                    setSelectedEmployees(res.data.users);
+                    setResUsers(res.data.users);
+                    console.log("val res",res.data.users)
+                    if(res.data.title === res.data.project.title){
+                        setIsSameProject(true)
+                    }else{
+                        setIsSameProject(false)
+                    }
+                })
+                .catch((err) => {
+                    setloading(false)
+                    console.log("Error:", err);
+                });
+        }
+    }, [errFlag]);
+    
+    const handleUpdate = () => {
+        const subProject = {
+            subProjectId:editData.id,
+            projectId: selectedProject,
+            title: subProjectName,
+            note: subProjectName,
+            notification: false,
+            expense: fundAllocated,
+            startDate: new Date(startDate).toISOString(),
+            endDate: new Date(endDate).toISOString(),
+            maxLimit: limitTransaction,
+            newMembers: newMembers,
+            deleteMembers: deleteMembers
+        }
+        axios({
+            method: 'put',
+            url: `${baseURL}/api/project-mgmt`,
+            headers: {
+                'Authorization': `Bearer ${loginData.jwt}`,
+            },
+            data: subProject
+        })
+            .then((res) => {
+                console.log("Response:", res.data);
+                setOpenToast(true);
+                setSeverity('success')
+                setMsg('Sub-Project Updated Successfully')
+                setTimeout(() => {
+                    navigate(-1);
+                  }, 1500);
+                  setNewMembers([]);
+                  setdeleteMembers([]);
+            })
+            .catch((err) => {
+                console.log("Error:", err);
+                setErrFlag(!errFlag)
+                setOpenToast(true);
+                setSeverity('error')
+                setMsg('Error...!')
+                setNewMembers([]);
+                setdeleteMembers([]);
+            });
+
+    }
+const [closeModal,setCloseModal]=useState(false);
+    const closeSubproejct=()=>{
+        setCloseModal(true);
+    }
+
     return (
         <Container
             sx={{
@@ -390,7 +511,7 @@ const ProjectPage = () => {
                     >
                         Add Employee
                     </Button>
-                    {selectedEmployees.length > 0 && (
+                    {selectedEmployees  && (
                         <List dense>
                             {selectedEmployees.map((employee) => (
                                 <ListItem key={employee.id}>
@@ -413,16 +534,38 @@ const ProjectPage = () => {
                         value={limitTransaction}
                         onChange={(event) => setLimitTransaction(event.target.value)}
                     />
+                    {editData ? 
+                    <>
                     <Button
                         variant="contained"
                         color="primary"
                         fullWidth
-                        style={{ marginTop: '16px' }}
+                        style={{ marginTop: '16px',textTransform:'none' }}
+                        onClick={() => handleUpdate()}
+                    >
+                        Update
+                    </Button>
+                    <Button
+                        variant="contained"
+                        fullWidth
+                        style={{ marginTop: '16px',textTransform:'none'}}
+                        color="error"
+                        onClick={()=>closeSubproejct()}
+                    >
+                        Close Sub-Project
+                    </Button>
+                    </>
+                    :
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        style={{ marginTop: '16px',textTransform:'none' }}
                         onClick={() => handleSubmit()}
                         disabled={!isFormValid()}
                     >
                         Submit
-                    </Button>
+                    </Button>}
                 </form>
             </Paper>
             <Dialog open={openEmployeeModal} onClose={handleEmployeeModalClose}>
@@ -443,7 +586,7 @@ const ProjectPage = () => {
                                     <FormControlLabel
                                         control={
                                             <Checkbox
-                                                checked={selectedEmployees.some((e) => e.id === employee.id)}
+                                                checked={selectedEmployees && selectedEmployees.some((e) => e.id === employee.id)}
                                                 onChange={() => handleEmployeeSelection(employee)}
                                                 color="primary"
                                             />
@@ -516,7 +659,7 @@ const ProjectPage = () => {
             <Backdrop open={loading} style={{ zIndex: 9999, flexDirection: "column" }}>
                 <CircularProgress sx={{ color: 'rgb(34, 41, 57)' }} size={50} />
             </Backdrop>
-
+            <CloseSubProject closeModal={closeModal} setCloseModal={setCloseModal} subProjectId={editData && editData.id} setMsg={setMsg} setSeverity={setSeverity} setOpenToast={setOpenToast}/>
         </Container>
     );
 };

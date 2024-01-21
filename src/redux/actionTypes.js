@@ -8,4 +8,7 @@ export const ADMIN_DATA='ADMIN_DATA';
 export const SET_DATE='SET_DATE';
 export const ADMIN_PRJ_ID='ADMIN_PRJ_ID';
 export const USER_PROFIT_DATA='USER_PROFIT_DATA';
-
+export const SUB_PROJECT_DATA='SUB_PROJECT_DATA';
+export const SET_SUBPROJ_ID='SET_SUBPROJ_ID';
+export const SET_ALL_CHECK='SET_ALL_CHECK';
+export const UPDATE_PROFILE='UPDATE_PROFILE';

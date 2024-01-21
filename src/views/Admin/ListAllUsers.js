@@ -2,13 +2,17 @@ import React, { useEffect, useState } from 'react'
 import Header from '../Header'
 import { Alert, Avatar, Container, IconButton, List, ListItem, ListItemAvatar, ListItemIcon, ListItemText, Pagination, Snackbar } from '@mui/material'
 import { baseURL } from '../../utils/services';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import CallIcon from '@mui/icons-material/Call';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteModel from '../../Components/DeleteModel';
+import { useNavigate } from 'react-router-dom';
+import { UPDATE_PROFILE } from '../../redux/actionTypes';
 
 const ListAllUsers = () => {
+    const navigate=useNavigate();
+    const dispatch=useDispatch();
     const loginData = useSelector(state => state.auth.user);
     const [userList,setUserList]=useState([]);
     const [pageCount,setPageCount]=useState(0);
@@ -18,7 +22,8 @@ const ListAllUsers = () => {
     const [msg, setMsg] = useState('');
     const [severity, setSeverity] = useState('success');
     const [deleteId,setDeleteId]=useState(null);
-    const [DeleteFlag,setDeleteFlag]=useState(false)
+    const [DeleteFlag,setDeleteFlag]=useState(false);
+    dispatch({type: UPDATE_PROFILE, payload: null})
     //get all users
     useEffect(() => {
         axios({
@@ -48,6 +53,11 @@ const ListAllUsers = () => {
         }
         setOpenToast(false);
       };
+    
+    const handleUserEdit=(user)=>{
+        dispatch({type: UPDATE_PROFILE, payload: user})
+        navigate("/my-profile");
+    }
     return (
         <Container
             sx={{
@@ -69,7 +79,7 @@ const ListAllUsers = () => {
                         .toUpperCase();
 
                     return (
-                        <ListItem key={user.id}>
+                        <ListItem  key={user.id} onClick={()=>handleUserEdit(user)}>
                             <ListItemAvatar>
                                 <Avatar>{initials}</Avatar>
                             </ListItemAvatar>
@@ -91,6 +101,7 @@ const ListAllUsers = () => {
                                     <CallIcon sx={{color:'green'}} />
                                 </IconButton>
                                 <IconButton
+                                    disabled={user.name === 'admin'}
                                     edge="end"
                                     onClick={()=>{
                                         setOpen(true);

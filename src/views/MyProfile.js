@@ -20,6 +20,7 @@ const MyProfile = () => {
     role: ["GENERAL"], // Default to "General"
   });
   const loginData = useSelector(state => state.auth.user);
+  const userData= useSelector(state=>state.UpdateProfileReducer.data)
   const [formValid, setFormValid] = useState(false);
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -85,9 +86,10 @@ const MyProfile = () => {
   };
 
   useEffect(()=>{
-    axios({
+    if(userData !=null){
+      axios({
         method: 'get',
-        url: `${baseURL}/api/authentication/self-info`,
+        url: `${baseURL}/api/authentication/search-by/username/${userData.username}`,
         headers: {
             Authorization: `Bearer ${loginData.jwt}`,
         },
@@ -95,17 +97,20 @@ const MyProfile = () => {
     .then((res) => {
       console.log("res self info", res);
       setUserDetails({
-        id:res.data.id,
-        name: res.data.name,
-        email: res.data.email,
-        phone: res.data.phone,
-        username: res.data.username,
-        role: [res.data.authorities[0].authority],
+        id:res.data[0].id,
+        name: res.data[0].name,
+        email: res.data[0].email,
+        phone: res.data[0].phone,
+        username: res.data[0].username,
+        role: [res.data[0].authorities[0].authority],
       })
     })
     .catch((err) => {
       console.log("err self info", err);
     });
+    }else{
+      navigate(-1);
+    }
   },[])
   const handleUpdatePassword = () => {
     axios.post(`${baseURL}/api/authentication/reset/${userDetails.email}`)
@@ -206,7 +211,7 @@ const MyProfile = () => {
           >
             Update
           </Button>
-          <Button
+          {/* <Button
             variant="contained"
             color="primary"
             fullWidth
@@ -214,7 +219,7 @@ const MyProfile = () => {
             onClick={handleUpdatePassword}
           >
             Update Password
-          </Button>
+          </Button> */}
         </form>
       </Paper>
       <Snackbar sx={{ top: '75px' }} open={open} autoHideDuration={4000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>

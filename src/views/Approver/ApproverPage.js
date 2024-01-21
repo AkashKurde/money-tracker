@@ -261,7 +261,7 @@ const ApproverPage = () => {
                             ))}
                         </Select>
                     </FormControl>
-                    <TextField
+                    {/* <TextField
                         label="Title"
                         variant="outlined"
                         fullWidth
@@ -269,7 +269,7 @@ const ApproverPage = () => {
                         margin="normal"
                         disabled
                         value={allValues.title}
-                    />
+                    /> */}
                     <TextField
                         label="Description"
                         variant="outlined"
@@ -328,7 +328,7 @@ const ApproverPage = () => {
                         {updatedFiles && updatedFiles.length > 0  && (
                             <ul>
                                 {updatedFiles.map((file, index) => {
-                                    const parts = file.location.split('\\');
+                                    const parts = file.location.split('/');
                                     const filename = parts[parts.length - 1];
 
                                     return (

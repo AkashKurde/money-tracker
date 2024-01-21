@@ -7,6 +7,11 @@ import AdminStatusReducer from './reducers/AdminStatusReducer';
 import AdminDataReducer from './reducers/AdminDataReducer';
 import AdminProjectIDReducer from './reducers/AdminProjectIDReducer';
 import UserReportDataReducer from './reducers/UserReportDataReducer';
+import SubProjectDataReducer from './reducers/SubProjectDataReducer';
+import DateReduce from './reducers/DateReduce';
+import SubProjIdReducer from './reducers/SubProjIdReducer';
+import AllCheckReducer from './reducers/AllCheckReducer';
+import UpdateProfileReducer from './reducers/UpdateProfileReducer';
 
 
 const rootReducer = combineReducers({
@@ -17,7 +22,12 @@ const rootReducer = combineReducers({
     AdminStatusReducer:AdminStatusReducer,
     AdminDataReducer:AdminDataReducer,
     AdminProjectIDReducer:AdminProjectIDReducer,
-    UserReportDataReducer:UserReportDataReducer
+    UserReportDataReducer:UserReportDataReducer,
+    SubProjectDataReducer:SubProjectDataReducer,
+    DateReduce:DateReduce,
+    SubProjIdReducer:SubProjIdReducer,
+    AllCheckReducer:AllCheckReducer,
+    UpdateProfileReducer:UpdateProfileReducer
 })
 
 export default rootReducer;

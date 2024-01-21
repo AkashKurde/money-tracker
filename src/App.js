@@ -20,6 +20,7 @@ import CreateProfitPage from './views/CreateProfitPage';
 import ListUserProfit from './views/ListUserProfit';
 import FundReceivedList from './views/Admin/FundReceivedList';
 import FundReceviedView from './views/Admin/FundReceviedView';
+import SubProjectList from './views/Admin/SubProjectList';
 
 const App = () => {
   document.addEventListener('gesturestart', function (e) {
@@ -47,7 +48,9 @@ const App = () => {
           path="/my-profile"
           element={
             <PrivateRoute>
-              <MyProfile />
+              {loginData && loginData.roles[0]?.authority === 'ADMIN' ?
+              <MyProfile /> : <NotFound/>
+              }
             </PrivateRoute>
           }
         />
@@ -169,6 +172,17 @@ const App = () => {
             <PrivateRoute>
               {loginData && loginData.roles[0]?.authority === 'ADMIN' ?
                 <ListAllUsers /> :
+                <NotFound />}
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/sub-project-list"
+          element={
+            <PrivateRoute>
+              {loginData && loginData.roles[0]?.authority === 'ADMIN' ?
+                <SubProjectList /> :
                 <NotFound />}
             </PrivateRoute>
           }

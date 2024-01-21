@@ -1,26 +1,35 @@
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Alert, Backdrop, BottomNavigation, BottomNavigationAction, Box, Button, Card, CardContent, CircularProgress, Container, Dialog, DialogContent, FormControl, Grid, IconButton, InputLabel, List, ListItem, ListItemText, Menu, MenuItem, Paper, Select, Snackbar, TextField, Typography } from '@mui/material';
+import { Alert, Backdrop, BottomNavigation, BottomNavigationAction, Box, Button, Card, CardContent, CircularProgress, Container, Dialog, DialogContent, FormControl, Grid, IconButton, InputLabel, List, ListItem, ListItemText, Menu, MenuItem, Modal, Paper, Select, Snackbar, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
-import Fade from '@mui/material/Fade';
-import { height } from '@mui/system';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { baseURL } from '../../utils/services';
 import Header from '../Header';
-import { ADMIN_PRJ_ID, STATUS } from '../../redux/actionTypes';
+import { ADMIN_DATA, ADMIN_PRJ_ID, SET_ALL_CHECK, SET_DATE, SET_SUBPROJ_ID, STATUS, USER_PROFIT_DATA } from '../../redux/actionTypes';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import PersonAddAltRoundedIcon from '@mui/icons-material/PersonAddAltRounded';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import PersonIcon from '@mui/icons-material/Person';
+import SimCardDownloadIcon from '@mui/icons-material/SimCardDownload';
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 255,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+    display:'flex',
+    flexDirection:'column'
+  };
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const loginData = useSelector(state => state.auth.user);
     const [projectOptions, setprojectOptions] = useState([]);
-    const [selectedProject, setSelectedProject] = useState('');
-    const [anchorEl, setAnchorEl] = useState(null);
     const [adminCards, setadminCards] = useState({
         approved: 0,
         rejected: 0,
@@ -32,6 +41,7 @@ const AdminDashboard = () => {
     });
     const [bottomSelectedValue, setBottomSelectedValue] = useState('');
     const [openModal, setOpenModal] = useState(false);
+    const [openModalFile, setOpenModalFile] = useState(false);
     const [categoryText, setCategoryText] = useState('');
     const [addedCategories, setAddedCategories] = useState([]);
     const [resCategory,setResCategory]=useState([]);
@@ -40,11 +50,26 @@ const AdminDashboard = () => {
     const [openToast, setOpenToast] = useState(false);
     const [msg, setMsg] = useState('');
     const [severity, setSeverity] = useState('success');
+    const [selectedProjectFile, setSelectedProjectFile] = useState('');
+    const [reportType, setReportType] = useState('');
+    const [reportFile,setReportFile]=useState('');
 
+    //initail null check
     useEffect(()=>{
-        dispatch({type: ADMIN_PRJ_ID, payload: null })
-        dispatch({ type: STATUS, payload: null })
-    },[])
+        dispatch({type: ADMIN_PRJ_ID, payload: null });
+        dispatch({ type: STATUS, payload: null });
+        dispatch({type:SET_ALL_CHECK,payload:false});
+        dispatch({
+            type: SET_DATE, payload: {
+              startDate: null,
+              endDate: null
+            }
+          });
+        dispatch({ type: ADMIN_DATA, payload: null });
+        dispatch({type: USER_PROFIT_DATA ,payload: null});
+        dispatch({type:SET_SUBPROJ_ID,payload:''})
+    },[]);
+
     const handleClosetoast = (event, reason) => {
         if (reason === 'clickaway') {
           return;
@@ -52,31 +77,9 @@ const AdminDashboard = () => {
         setOpenToast(false);
       };
     
-    const open = Boolean(anchorEl);
-    const navigate = useNavigate();
-
-    const handleClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
-
-    const handleApproved = () => {
-        dispatch({ type: STATUS, payload: 'APPROVED' })
+    const handleShowAdminData = () => {
         navigate('/admin-projectlist')
-    }
-    const handleRejected = () => {
-        dispatch({ type: STATUS, payload: 'REJECTED' })
-        navigate('/admin-projectlist')
-    }
-    const handleInApprovals = () => {
-        dispatch({ type: STATUS, payload: 'IN_APPROVAL' })
-        navigate('/admin-projectlist')
-    }
-    const handleFundReceived = () => {
-        navigate('/fund-received')
-    }
+    } 
     //get all project
     useEffect(() => {
         axios({
@@ -113,44 +116,13 @@ const AdminDashboard = () => {
             });
     }, [])
 
-
-    const handleProjectChange = (event) => {
-        const selectedProject = event.target.value;
-        dispatch({type: ADMIN_PRJ_ID, payload: selectedProject })
-        setSelectedProject(selectedProject);
-        //filter admin cards with project
-        axios({
-            method: 'get',
-            url: `${baseURL}/api/admin/dashboard/project/${selectedProject}`,
-            headers: {
-                'Authorization': `Bearer ${loginData.jwt}`,
-            },
-        })
-            .then((res) => {
-                console.log("Response: filter", res);
-                setadminCards(res.data);
-                
-            })
-            .catch((err) => {
-                console.log("Error filter:", err);
-                setadminCards({
-                    approved: 0,
-                    rejected: 0,
-                    totalSpent: 0,
-                    fundAllocated: 0,
-                    pendingApprovals: 0,
-                    fundReceived:0,
-                    totalEarnings:0
-                })
-            });
-    };
     const handleChangeBottom = (event, newValue) => {
         setBottomSelectedValue(newValue);
         if (newValue == 0) {
             navigate('/register');
         }
         if (newValue == 1) {
-            navigate('/project');
+            navigate('/sub-project-list');
         }
         if (newValue == 2) {
             setOpenModal(true);
@@ -158,11 +130,22 @@ const AdminDashboard = () => {
             setCategoryText('');
         }
         if(newValue == 3){
-            navigate('/users')
+            setOpenModalFile(true);
+            setSelectedProjectFile('');
+            setReportType('');
+            setReportFile('')
         }
     };
     const handleModalClose = () => {
         setOpenModal(false);
+        setBottomSelectedValue('');
+    };
+    const handleModalCloseFile = () => {
+        setBottomSelectedValue('');
+        setOpenModalFile(false);
+        setSelectedProjectFile('');
+        setReportType('');
+        setReportFile('')
     };
     const handleAddCategory = () => {
         if (categoryText.trim() !== '') {
@@ -236,6 +219,42 @@ const AdminDashboard = () => {
             console.log('Error:', err);
           });
       }, [deleteFlag,openModal]);
+
+   // get donwload report 
+    useEffect(()=>{
+        if (selectedProjectFile !== '' && reportType !== '') {
+            axios({
+                method: 'get',
+                url: `${baseURL}/api/admin/export-as-file/${selectedProjectFile}/${reportType}`,
+                headers: {
+                    Authorization: `Bearer ${loginData.jwt}`,
+                },
+            })
+                .then((res) => {
+                    console.log('Response:', res.data);
+                    setReportFile(res.data)
+
+                })
+                .catch((err) => {
+                    console.log('Error:', err);
+                    setReportFile('')
+                    setOpenToast(true);
+                    setSeverity('error')
+                    setMsg('Error fetching report')
+                });
+        }
+    },[selectedProjectFile,reportType])
+    
+    // donwload report
+    const handleDownloadFile = ()=>{
+        const url = reportFile;
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'file');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
     return (
         <Container
             sx={{
@@ -248,35 +267,27 @@ const AdminDashboard = () => {
             }}
         >
             <Header name={'Dashboard'}/>
-            <Box
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '95%',
-                    marginTop: '10px',
-                }}
-            >
-                <FormControl fullWidth variant="outlined" margin="normal">
-                    <InputLabel id="project-label">Project</InputLabel>
-                    <Select
-                        labelId="project-label"
-                        id="project-select"
-                        label='Project'
-                        value={selectedProject}
-                        onChange={handleProjectChange}
-                    >
-                        {projectOptions && projectOptions.map((option) => (
-                            <MenuItem key={option.id} value={option.id}>
-                                {option.title}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-
-            </Box>
             <Box sx={{ overflowY: 'auto', flex: 1 }}>
             <Grid container spacing={2} sx={{ marginTop: '5px',marginBottom:'60px', paddingLeft: '10px', paddingRight: '10px' }}>
-
+                    <Grid item xs={6} sm={6} md={4} lg={3} xl={2}>
+                        <Card
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                paddingBottom: '10px',
+                                textAlign: 'center',
+                                height: '130px'
+                            }}
+                            onClick={() => handleShowAdminData()}
+                        >
+                            <Typography sx={{ fontSize: '26px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                My Account
+                            </Typography>
+                            <Typography variant="h6">Click here</Typography>
+                        </Card>
+                    </Grid>
                 <Grid item xs={6} sm={6} md={4} lg={3} xl={2}>
                     <Card
                         sx={{
@@ -288,9 +299,9 @@ const AdminDashboard = () => {
                             textAlign: 'center',
                             height: '130px'
                         }}
-                        onClick={handleApproved}
+                        // onClick={handleApproved}
                     >
-                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px' }}>
+                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px',overflow:'hidden',textOverflow:'ellipsis' }}>
                             {adminCards.approved}
                         </Typography>
                         <Typography variant="h6">Approved</Typography>
@@ -307,9 +318,9 @@ const AdminDashboard = () => {
                             textAlign: 'center',
                             height: '130px'
                         }}
-                        onClick={handleRejected}
+                        // onClick={handleRejected}
                     >
-                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px' }}>
+                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px',overflow:'hidden',textOverflow:'ellipsis' }}>
                             {adminCards.rejected}
                         </Typography>
                         <Typography variant="h6">Rejected</Typography>
@@ -327,7 +338,7 @@ const AdminDashboard = () => {
                             height: '130px'
                         }}
                     >
-                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px' }}>
+                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px',overflow:'hidden',textOverflow:'ellipsis' }}>
                             {adminCards.totalSpent}
                         </Typography>
                         <Typography variant="h6">Total Spent</Typography>
@@ -346,7 +357,7 @@ const AdminDashboard = () => {
                         }}
                         
                     >
-                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px' }}>
+                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px',overflow:'hidden',textOverflow:'ellipsis' }}>
                             {adminCards.fundAllocated}
                         </Typography>
                         <Typography variant="h6">Fund Allocated</Typography>
@@ -363,9 +374,9 @@ const AdminDashboard = () => {
                             textAlign: 'center',
                             height: '130px'
                         }}
-                        onClick={handleInApprovals}
+                        // onClick={handleInApprovals}
                     >
-                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px' }}>
+                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px',overflow:'hidden',textOverflow:'ellipsis' }}>
                             {adminCards.pendingApprovals}
                         </Typography>
                         <Typography variant="h6">Approvals</Typography>
@@ -382,9 +393,9 @@ const AdminDashboard = () => {
                             textAlign: 'center',
                             height: '130px'
                         }}
-                        onClick={handleFundReceived}
+                        // onClick={handleFundReceived}
                     >
-                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px' }}>
+                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px',overflow:'hidden',textOverflow:'ellipsis' }}>
                             {adminCards.fundReceived}
                         </Typography>
                         <Typography variant="h6">Fund Received</Typography>
@@ -402,7 +413,7 @@ const AdminDashboard = () => {
                             height: '130px'
                         }}
                     >
-                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px' }}>
+                        <Typography sx={{ fontSize: '28px', fontWeight: 'bold', width: '100%', background: '#c5c5c5', padding: '25px',overflow:'hidden',textOverflow:'ellipsis' }}>
                             {adminCards.totalEarnings}
                         </Typography>
                         <Typography variant="h6">Total Earnings</Typography>
@@ -419,9 +430,10 @@ const AdminDashboard = () => {
                     <BottomNavigationAction label="Regsiter" icon={<PersonAddAltRoundedIcon />} />
                     <BottomNavigationAction label="Project" icon={<AddCircleIcon />} />
                     <BottomNavigationAction label="Category" icon={<AssignmentIcon />} />
-                    <BottomNavigationAction label="Users" icon={<PersonIcon />} />
+                    <BottomNavigationAction label="File" icon={<SimCardDownloadIcon />} />
                 </BottomNavigation>
             </Box>
+            {/* category model */}
             <Dialog open={openModal} onClose={handleModalClose}>
                 <DialogContent>
                     <Typography sx={{ fontSize: '17px', fontWeight: '700' }}>Create Category :</Typography>
@@ -463,7 +475,48 @@ const AdminDashboard = () => {
                     </Button>
                 </DialogContent>
             </Dialog>
-
+            {/* File download model  */}
+            <Modal
+                open={openModalFile}
+                onClose={handleModalCloseFile}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={style}>
+                <Typography sx={{ fontSize: '17px', fontWeight: '700',marginBottom:'15px' }}>File Download :</Typography>
+                    <FormControl sx={{marginTop:'5px'}} fullWidth variant="outlined" margin="normal">
+                        <InputLabel id="project-label">Project</InputLabel>
+                        <Select
+                            labelId="project-label"
+                            id="project-select"
+                            label='Project'
+                            value={selectedProjectFile}
+                            onChange={(e)=>setSelectedProjectFile(e.target.value)}
+                        >
+                            {projectOptions && projectOptions.map((option) => (
+                                <MenuItem key={option.id} value={option.id}>
+                                    {option.title}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <FormControl sx={{marginTop:'5px'}} fullWidth variant="outlined" margin="normal">
+                        <InputLabel id="project-label">Report type</InputLabel>
+                        <Select
+                            labelId="project-label"
+                            id="project-select"
+                            label='Report type'
+                            value={reportType}
+                            onChange={(e)=>setReportType(e.target.value)}
+                        >
+                            <MenuItem  value='refund'>Refund</MenuItem>
+                            <MenuItem  value='expense'>Expense</MenuItem>
+                            <MenuItem  value='all'>All</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <Button disabled={(selectedProjectFile === '' || reportType === '') || reportFile === ''} variant="contained" color="primary"  sx={{ marginTop: '25px',textTransform:'none'}} onClick={handleDownloadFile}> Download </Button>
+                </Box>
+            </Modal>
             <Snackbar sx={{ top: '75px' }} open={openToast} autoHideDuration={4000} onClose={handleClosetoast} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
                 <Alert variant='filled' onClose={handleClosetoast} severity={severity} sx={{ width: '100%' }}>
                     {msg}

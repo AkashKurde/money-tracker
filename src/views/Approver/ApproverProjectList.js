@@ -1,5 +1,5 @@
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Box, Card, CardContent, Container, FormControl, Grid, IconButton, InputLabel, Menu, MenuItem, Paper, Select, Typography } from '@mui/material';
+import { Backdrop, Box, Card, CardContent, CircularProgress, Container, FormControl, Grid, IconButton, InputLabel, Menu, MenuItem, Paper, Select, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import Fade from '@mui/material/Fade';
 import { useDispatch, useSelector } from 'react-redux';
@@ -32,6 +32,7 @@ const ApproverProjectList = () => {
     const [projectName, setProjectName] = useState('');
     const loginData = useSelector((state) => state.auth.user);
     const open = Boolean(anchorEl);
+    const [loading, setloading] = useState(false);
 
 
     useEffect(()=>{
@@ -88,6 +89,10 @@ const ApproverProjectList = () => {
         const selectedProject = event.target.value;
         setSelectedProject(selectedProject);
         setProjectName(selectedProject);
+        setApproverReport([]);
+       
+        // api call after project change
+        setloading(true);
         axios({
             method: 'get',
             url: `${baseURL}/api/report/by-subproject/${selectedProject}`,
@@ -97,10 +102,12 @@ const ApproverProjectList = () => {
         })
             .then((res) => {
                 console.log('Response: report get', res.data);
+                setloading(false);
                 setApproverReport(res.data);
             })
             .catch((err) => {
                 console.log('Error:', err);
+                setloading(false);
                 setApproverReport([])
             });
     };
@@ -167,7 +174,7 @@ const ApproverProjectList = () => {
                     alignItems: 'center',
                     width: '100%',
                     marginTop: '10px',
-                    paddingLeft:'15px'
+                    paddingLeft:'20px'
                 }}
             >
                 <FormControl fullWidth variant="outlined" margin="normal">
@@ -258,6 +265,9 @@ const ApproverProjectList = () => {
 
                     </Grid>
             )}
+            <Backdrop open={loading} style={{ zIndex: 9999, flexDirection: "column" }}>
+                <CircularProgress sx={{ color: 'rgb(34, 41, 57)' }} size={50} />
+            </Backdrop>
         </Container>
     )
 }

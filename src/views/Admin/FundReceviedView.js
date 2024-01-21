@@ -1,12 +1,11 @@
 import { Container } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import Header from '../Header'
-import { Backdrop, CircularProgress, FormControl, InputLabel, MenuItem, Paper, Select, TextField } from '@mui/material'
+import { Backdrop, CircularProgress, FormControl, InputLabel, Button, Paper, Select, TextField, Snackbar, Alert } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { baseURL } from '../../utils/services'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-
 const FundReceviedView = () => {
     const navigate=useNavigate();
     const ProfitData = useSelector((state) => state.UserReportDataReducer.data);
@@ -19,7 +18,10 @@ const FundReceviedView = () => {
         subProjectId: null,
         amount: null,
     })
-   
+   const [date,setDate]=useState(new Date().toISOString().split('T')[0]);
+   const [open, setOpen] = useState(false);
+   const [msg, setMsg] = useState('');
+   const [severity, setSeverity] = useState('success');
     useEffect(() => {
         if (ProfitData !== null) {
 
@@ -33,6 +35,7 @@ const FundReceviedView = () => {
                 .then((res) => {
                     console.log('Response: exp', res.data);
                     setProfitDetails(res.data);
+                    setDate(res.data.createdAt !== null && res.data.createdAt.split('T')[0])
                     setUpdatedfiles(res.data.reportFiles)
                 })
                 .catch((err) => {
@@ -68,7 +71,52 @@ const FundReceviedView = () => {
         document.body.removeChild(link);
 
     }
-    
+    const handleDateChange = (event) => {
+        setDate(event.target.value);
+    };
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setProfitDetails({
+            ...profitDetails,
+            [name]: value,
+        });
+    };
+
+    const handleSubmit=()=>{
+        axios({
+            method: 'put',
+            url: `${baseURL}/api/profit/create-refund`,
+            headers: {
+                Authorization: `Bearer ${loginData.jwt}`,
+            },
+            data: {
+                ...profitDetails,
+                createdAt: new Date(date).toISOString(),
+                status:"APPROVED"
+            },
+        })
+            .then((res) => {
+                console.log('Response:', res.data);
+                setOpen(true);
+                setSeverity('success')
+                setMsg('Profit Submited Successfully');
+                setTimeout(() => {
+                    navigate('/admin-projectlist');
+                  }, 1000);
+            })
+            .catch((err) => {
+                console.log('Error:', err);
+                setOpen(true);
+                setSeverity('error')
+                setMsg('Error Submiting fund')
+            })
+    }
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpen(false);
+    };
   return (
     <Container
     sx={{
@@ -91,6 +139,7 @@ const FundReceviedView = () => {
                   margin="normal"
                   value={subProjectName}
                   disabled
+                  
               />
               <TextField
                   label="Note"
@@ -100,7 +149,7 @@ const FundReceviedView = () => {
                   size="medium"
                   margin="normal"
                   value={profitDetails.note}
-                  disabled
+                  onChange={handleChange}
               />
               <TextField
                   label="Amount"
@@ -114,13 +163,25 @@ const FundReceviedView = () => {
                   InputLabelProps={{
                       shrink: true, // This ensures the label stays floating
                   }}
-                  disabled
+                  onChange={handleChange}
+                  
               />
-
+              <TextField
+                  label="Date"
+                  variant="outlined"
+                  fullWidth
+                  type="date"
+                  margin="normal"
+                  InputLabelProps={{
+                      shrink: true,
+                  }}
+                  value={date}
+                  onChange={handleDateChange}
+              />
               {updatedFiles && updatedFiles.length > 0 && (
                   <ul>
                       {updatedFiles.map((file, index) => {
-                          const parts = file.location.split('\\');
+                          const parts = file.location.split('/');
                           const filename = parts[parts.length - 1];
 
                           return (
@@ -131,6 +192,21 @@ const FundReceviedView = () => {
                       })}
                   </ul>
               )}
+
+              <Button
+                  variant="contained"
+                  fullWidth
+                  color="primary"
+                  sx={{ textTransform: 'none' }}
+                  onClick={handleSubmit}
+              >
+                  Update
+              </Button>
+              <Snackbar sx={{ top: '75px' }} open={open} autoHideDuration={4000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+                  <Alert variant='filled' onClose={handleClose} severity={severity} sx={{ width: '100%' }}>
+                      {msg}
+                  </Alert>
+              </Snackbar>
           </Paper>
 </Container>
 
