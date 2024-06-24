@@ -67,7 +67,7 @@ const ProjectList = () => {
 
   useEffect(() => {
     if (storedDate.startDate && storedDate.endDate) {
-      if (error === '' && subProj !== '') {
+      if (error === '' && subProj !== '' && subProj!=undefined) {
         setloading(true)
         axios({
           method: 'get',
@@ -80,6 +80,34 @@ const ProjectList = () => {
             console.log('Response: report get', res.data);
             setloading(false)
             setAllReport(res.data);
+            if (res.data.startDate === null || res.data.endDate === null) {
+              const today = new Date();
+              const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+              const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+              const formattedFirstDay = `${firstDayOfMonth.getFullYear()}-${(firstDayOfMonth.getMonth() + 1)
+                .toString()
+                .padStart(2, '0')}-${firstDayOfMonth.getDate().toString().padStart(2, '0')}`;
+
+              const formattedLastDay = `${lastDayOfMonth.getFullYear()}-${(lastDayOfMonth.getMonth() + 1)
+                .toString()
+                .padStart(2, '0')}-${lastDayOfMonth.getDate().toString().padStart(2, '0')}`;
+
+              dispatch({
+                type: SET_DATE, payload: {
+                  startDate: formattedFirstDay,
+                  endDate: formattedLastDay
+                }
+              })
+            } else {
+              dispatch({
+                type: SET_DATE, payload: {
+                  startDate: res.data.startDate !== null && res.data.startDate.split('T')[0],
+                  endDate: res.data.endDate !== null && res.data.endDate.split('T')[0]
+                }
+              })
+            }
+           
           })
           .catch((err) => {
             console.log('Error:', err);
@@ -115,10 +143,10 @@ const ProjectList = () => {
         },
       })
         .then((res) => {
-          console.log('Response:', res.data);
+          console.log('Response: datteee', res.data);
           setSubprojectOptions(res.data)
           if (subProj === '') {
-          dispatch({ type: SET_SUBPROJ_ID, payload: res.data[0].id })
+            dispatch({ type: SET_SUBPROJ_ID, payload: res.data[0].id });
           }
         })
         .catch((err) => {
@@ -252,7 +280,8 @@ const ProjectList = () => {
                     <Card sx={{ display: 'flex', alignItems: 'center',justifyContent:"space-between"}} onClick={() => handelClickCard(val)}>
                       <CardContent sx={{paddingLeft:'10px',paddingRight:'10px',paddingTop:'10px',paddingBottom:'10px'}}>
                       {val.refund ? <Typography sx={{ color: 'black', maxWidth: "175px", fontSize: '17px', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{val.title ? val.title : '-'}</Typography> :
-                          <Typography  sx={{ color: 'black',maxWidth: "175px", fontSize: '17px', fontWeight: 500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{val.description ? val.description : '-'}</Typography>}                        <Typography  sx={{ color:'#6b5c5c',maxWidth: "175px", fontSize: '15px', fontWeight: 500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>By {val.username ? val.username : '-'}</Typography>
+                          <Typography  sx={{ color: 'black',maxWidth: "290px", fontSize: '17px', fontWeight: 500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{val.category ? val.category : '-'}</Typography>}
+                          <Typography  sx={{ color:'#6b5c5c',maxWidth: "175px", fontSize: '15px', fontWeight: 500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>By {val.username ? val.username : '-'}</Typography>
                         <Typography  sx={{ color:'#6b5c5c',fontWeight: '500',maxWidth: "175px",whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>Date : {val.createdAt ? val.createdAt.split('T')[0] : '-'}</Typography>
                         {val.approvalStatus === 'DRAFT' && <Chip label={'Draft'} color="primary" sx={{ width: '80px', height: '24px',marginTop:'10px' }} /> }
                         {val.approvalStatus === 'APPROVED' && <Chip label={'Approved'} sx={{ width: '80px', height: '24px',marginTop:'10px',background:'green',color:'white' }} /> }

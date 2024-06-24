@@ -141,6 +141,34 @@ const AdminProjectList = () => {
         }).then((res) => {
           console.log("res ad", res);
           setData(res.data)
+          if (res.data.startDate === null || res.data.endDate === null) {
+            const today = new Date();
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+            const formattedFirstDay = `${firstDayOfMonth.getFullYear()}-${(firstDayOfMonth.getMonth() + 1)
+              .toString()
+              .padStart(2, '0')}-${firstDayOfMonth.getDate().toString().padStart(2, '0')}`;
+
+            const formattedLastDay = `${lastDayOfMonth.getFullYear()}-${(lastDayOfMonth.getMonth() + 1)
+              .toString()
+              .padStart(2, '0')}-${lastDayOfMonth.getDate().toString().padStart(2, '0')}`;
+
+            dispatch({
+              type: SET_DATE, payload: {
+                startDate: formattedFirstDay,
+                endDate: formattedLastDay
+              }
+            })
+          }else{
+            dispatch({
+              type: SET_DATE, payload: {
+                startDate: res.data.startDate !== null && res.data.startDate.split('T')[0],
+                endDate: res.data.endDate !== null && res.data.endDate.split('T')[0]
+              }
+            })
+          }
+          
         }).catch((err) => {
           console.log("err admin", err);
           setData({result: null, remainingFund: null})
@@ -271,7 +299,7 @@ const AdminProjectList = () => {
                     <Card sx={{ display: 'flex', alignItems: 'center', justifyContent: "space-between" }} onClick={() => handleClickTitle(val)}>
                       <CardContent sx={{ paddingLeft: '10px', paddingRight: '10px', paddingTop: '10px', paddingBottom: '10px' }}>
                         {val.refund ? <Typography sx={{ color: 'black', maxWidth: "175px", fontSize: '17px', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{val.title ? val.title : '-'}</Typography> :
-                          <Typography  sx={{ color: 'black',maxWidth: "175px", fontSize: '17px', fontWeight: 500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{val.description ? val.description : '-'}</Typography>}
+                          <Typography  sx={{ color: 'black',maxWidth: "175px", fontSize: '17px', fontWeight: 500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{val.category ? val.category : '-'}</Typography>}
                         <Typography  sx={{ color:'#6b5c5c',maxWidth: "175px", fontSize: '15px', fontWeight: 500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>By {val.username ? val.username : '-'}</Typography>
                         <Typography  sx={{ color:'#6b5c5c',fontWeight: '500',maxWidth: "175px",whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>Date : {val.createdAt ? val.createdAt.split('T')[0] : '-'}</Typography>
                         {val.approvalStatus === 'DRAFT' && <Chip label={'Draft'} color="primary" sx={{ width: '80px', height: '24px',marginTop:'10px' }} /> }

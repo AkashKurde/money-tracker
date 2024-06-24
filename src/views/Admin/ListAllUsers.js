@@ -9,6 +9,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteModel from '../../Components/DeleteModel';
 import { useNavigate } from 'react-router-dom';
 import { UPDATE_PROFILE } from '../../redux/actionTypes';
+import EditIcon from '@mui/icons-material/Edit';
 
 const ListAllUsers = () => {
     const navigate=useNavigate();
@@ -97,18 +98,22 @@ const ListAllUsers = () => {
                                     aria-label="call"
                                     component="a"
                                     href={`tel:${user.phone}`}
+                                    onClick={(e) => {
+                                        // Stop the event propagation to prevent handleUserEdit from triggering
+                                        e.stopPropagation();
+                                    }}
                                 >
                                     <CallIcon sx={{color:'green'}} />
                                 </IconButton>
                                 <IconButton
                                     disabled={user.name === 'admin'}
                                     edge="end"
-                                    onClick={()=>{
-                                        setOpen(true);
-                                        setDeleteId(user.id)
-                                    }}
+                                    // onClick={()=>{
+                                    //     setOpen(true);
+                                    //     setDeleteId(user.id)
+                                    // }}
                                 >
-                                    <DeleteIcon sx={{color:'red'}} />
+                                    <EditIcon />
                                 </IconButton>
                             </ListItemIcon>
                         </ListItem>

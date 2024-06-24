@@ -1,4 +1,4 @@
-import { Alert, Autocomplete, Backdrop, Box, CircularProgress, Container, MenuItem, Snackbar, Typography } from '@mui/material'
+import { Alert, Autocomplete, Backdrop, Box, CircularProgress, Container, IconButton, MenuItem, Snackbar, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import Header from './Header'
 import { Button, FormControl, InputLabel, Paper, Select, TextField } from '@mui/material'
@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux'
 import { baseURL } from '../utils/services'
 import { useNavigate } from 'react-router-dom'
 import DeleteIcon from '@mui/icons-material/Delete';
-
+import CloseIcon from '@mui/icons-material/Close';
 const CreateProfitPage = () => {
     const navigate=useNavigate();
     const todayDate = new Date().toISOString().split('T')[0];
@@ -311,6 +311,13 @@ const CreateProfitPage = () => {
     const handleDateChange = (event) => {
         setDate(event.target.value);
       };
+    const handleRemoveFile = (index) => {
+        setFiles((prevFiles) => {
+            const updatedFiles = [...prevFiles];
+            updatedFiles.splice(index, 1);
+            return updatedFiles;
+        });
+    };
     return (
         <Container
             sx={{
@@ -407,11 +414,19 @@ const CreateProfitPage = () => {
                             })}
                         </ul>
                     )}
-                    {files && files.length > 0 && (
+                    {ProfitData !== null && (files && files.length > 0) && (
                         <Typography variant="subtitle1">
                             {`${files.length} files selected`}
                         </Typography>
                     )}
+                    {ProfitData === null && (files && files.map((file, index) => (
+                        <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Typography variant="subtitle1">{file.name}</Typography>
+                            <IconButton color="error">
+                                <CloseIcon onClick={() => handleRemoveFile(index)} />
+                            </IconButton>
+                        </div>
+                    )))}
                 </Box>
                 {ProfitData !== null ?
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>

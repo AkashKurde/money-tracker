@@ -251,7 +251,7 @@ const ApproverProjectList = () => {
                                             </CardContent>
                                             <div style={{display:'flex',flexDirection:'column'}}>
                                                 <div>
-                                                    <Typography variant="h6" style={cardAlign}>{val.title}</Typography>
+                                                    <Typography variant="h6" style={cardAlign}>{val.category}</Typography>
                                                 </div>
                                                 <div >
                                                     <Typography sx={{ fontSize: '15px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'175px'}}>{`Reported By ${val.username}`}</Typography>

@@ -14,6 +14,7 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  IconButton,
 } from '@mui/material';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
@@ -21,6 +22,7 @@ import { baseURL } from '../utils/services';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Header from './Header';
 import { useNavigate } from 'react-router-dom';
+import CloseIcon from '@mui/icons-material/Close';
 const ExpenseReportPage = () => {
   const navigate=useNavigate();
   const todayDate = new Date().toISOString().split('T')[0];
@@ -147,13 +149,25 @@ const ExpenseReportPage = () => {
     formData.append('approvalStatus','IN_APPROVAL');
     formData.append('createdAt',new Date(date).toISOString());
     // Now you can send the formData to the server
-    axios
-      .post(`${baseURL}/api/report`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data', // Important for sending files
-          Authorization: `Bearer ${loginData.jwt}`,
-        },
-      })
+
+    
+    // axios
+    //   .post(`${baseURL}/api/report`, formData, {
+    //     headers: {
+    //       'Content-Type': 'multipart/form-data', // Important for sending files
+    //       Authorization: `Bearer ${loginData.jwt}`,
+    //     },
+    //   })
+
+    axios({
+      method: "post",
+      url: `${baseURL}/api/report`,
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${loginData.jwt}`,
+      },
+      data: formData,
+    })
       .then((res) => {
         console.log("res report",res)
         setOpen(true);
@@ -342,6 +356,24 @@ const ExpenseReportPage = () => {
   const handleDateChange = (event) => {
     setDate(event.target.value);
   };
+
+  const handleRemoveFile = (index) => {
+    setFiles((prevFiles) => {
+      const updatedFiles = [...prevFiles];
+      updatedFiles.splice(index, 1);
+      return updatedFiles;
+    });
+  };
+  const downloadZip = (filepath) => {
+    const url = filepath;
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'file');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+}
   return (
     <Container
     sx={{
@@ -454,7 +486,7 @@ const ExpenseReportPage = () => {
               disabled
               value={expenseDetails.approverNote}
             />}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px', marginTop: '10px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '15px', marginTop: '10px' }}>
             <label htmlFor="file-upload">
               <Button disabled={expenseDetails.approvalStatus === "REJECTED" || expenseDetails.approvalStatus === "APPROVED" || expenseDetails.approvalStatus === "IN_APPROVAL" } variant="contained" fullWidth color="primary" component="span" sx={{ textTransform: 'none' }}>
                 Browse File
@@ -469,27 +501,40 @@ const ExpenseReportPage = () => {
               
             />
             {updatedFiles && updatedFiles.length > 0 && editMode &&(
-              <ul style={{ pointerEvents: (expenseDetails.approvalStatus === "REJECTED" || expenseDetails.approvalStatus === "APPROVED" || expenseDetails.approvalStatus === "IN_APPROVAL") && 'none' }}>
+              <ul>
               {updatedFiles.map((file, index) => {
                 const parts = file.location.split('/');
                 const filename = parts[parts.length - 1];
-        
+                
                 return (
-                  <li key={index} style={{display:'flex',gap:'10px',marginTop:'5px'}}>
+                  <li key={index} onClick={()=>downloadZip(file.location)} style={{display:'flex',gap:'10px',marginTop:'5px'}}>
                     {filename}{' '}
-                    <DeleteIcon  sx={{width:'19px',height:'19px'}}
-                      onClick={() => handleDeleteFile(file.id)}
+                    <DeleteIcon  sx={{width:'19px',height:'19px', pointerEvents: (expenseDetails.approvalStatus === "REJECTED" || expenseDetails.approvalStatus === "APPROVED" || expenseDetails.approvalStatus === "IN_APPROVAL") && 'none', visibility: (expenseDetails.approvalStatus === "REJECTED" || expenseDetails.approvalStatus === "APPROVED" || expenseDetails.approvalStatus === "IN_APPROVAL") && 'hidden'}}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteFile(file.id)
+                      }}
                     />
                   </li>
                 );
               })}
             </ul>
             )}
-            {files && files.length > 0 && (
-              <Typography variant="subtitle1">
-                {`${files.length} files selected`}
-              </Typography>
-            )}
+            {!editMode && (files && files.map((file, index) => (
+              <div key={index} style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                <Typography variant="subtitle1">{file.name}</Typography>
+                <IconButton color="error">
+                  <CloseIcon onClick={() => handleRemoveFile(index)} />
+                </IconButton>
+              </div>
+            )))}
+            {editMode &&
+              (files && files.length > 0 )&& (
+                <Typography variant="subtitle1">
+                  {`${files.length} files selected`}
+                </Typography>
+              )
+            }
             {editMode ? 
               <>
                 {expenseDetails.approvalStatus === 'DRAFT' &&
@@ -504,9 +549,7 @@ const ExpenseReportPage = () => {
                       expenseDetails.approvalStatus === "IN_APPROVAL" ||
                       !selectedProject ||
                       !selectedSubProject ||
-                      !expenseDetails.title ||
                       !expenseDetails.amount ||
-                      !expenseDetails.description ||
                       !expenseDetails.category}
                   >Update as Draft</Button>}
                 <Button
@@ -520,9 +563,7 @@ const ExpenseReportPage = () => {
                     expenseDetails.approvalStatus === "IN_APPROVAL" ||
                     !selectedProject ||
                     !selectedSubProject ||
-                    !expenseDetails.title ||
                     !expenseDetails.amount ||
-                    !expenseDetails.description ||
                     !expenseDetails.category}
                 >
                   Submit for approval
@@ -537,9 +578,7 @@ const ExpenseReportPage = () => {
                   onClick={handleDraft}
                   disabled={
                     !selectedSubProject ||
-                    !expenseDetails.title ||
                     !expenseDetails.amount ||
-                    !expenseDetails.description ||
                     !expenseDetails.category
                   }
                 >
@@ -553,9 +592,7 @@ const ExpenseReportPage = () => {
                   onClick={handleSubmit}
                   disabled={
                     !selectedSubProject ||
-                    !expenseDetails.title ||
                     !expenseDetails.amount ||
-                    !expenseDetails.description ||
                     !expenseDetails.category
                   }
                 >
